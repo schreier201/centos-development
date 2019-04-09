@@ -48,6 +48,7 @@ RUN \
     podman \
     skopeo \
     && \
+  ln -s /etc/containers /.config/containers && \
   yum -y clean all && \
   rm -rf /var/cache/yum && \
   true
