@@ -42,7 +42,12 @@ LABEL \
 
 RUN \
   yum -y groupinstall "Development Tools" && \
-  yum -y install docker && \
+  yum -y install \
+    buildah \
+    docker \
+    podman \
+    skopeo \
+    && \
   yum -y clean all && \
   rm -rf /var/cache/yum && \
   true
