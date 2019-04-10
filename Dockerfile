@@ -49,8 +49,8 @@ RUN \
     skopeo \
     libfaketime \
     && \
-  mkdir /.config && \
-  ln -s /etc/containers /.config/containers && \
+  perl -p -i -e 's/^driver = "overlay"$/driver = "vfs"/g' \
+    /etc/containers/storage.conf && \
   yum -y clean all && \
   rm -rf /var/cache/yum && \
   true
