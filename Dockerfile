@@ -47,7 +47,9 @@ RUN \
     docker \
     podman \
     skopeo \
+    libfaketime \
     && \
+  mkdir /.config && \
   ln -s /etc/containers /.config/containers && \
   yum -y clean all && \
   rm -rf /var/cache/yum && \
