@@ -54,3 +54,5 @@ RUN \
   yum -y clean all && \
   rm -rf /var/cache/yum && \
   true
+
+COPY libpod.conf /etc/containers/
