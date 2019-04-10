@@ -45,9 +45,10 @@ RUN \
   yum -y install \
     buildah \
     docker \
+    libfaketime \
     podman \
     skopeo \
-    libfaketime \
+    unzip \
     && \
   perl -p -i -e 's/^driver = "overlay"$/driver = "vfs"/g' \
     /etc/containers/storage.conf && \
