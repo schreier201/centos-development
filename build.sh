@@ -28,10 +28,12 @@ yum_opts=(
 )
 
 yum ${yum_opts[@]} groupinstall "Development Tools"
+yum ${yum_opts[@]} install epel-release
+
 yum ${yum_opts[@]} install \
   buildah \
-  epel-release \
   docker \
+  jq \
   libfaketime \
   podman \
   skopeo \
