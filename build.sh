@@ -64,7 +64,7 @@ buildah config \
   --label "${oci_prefix}.description=${descr}" \
   "${ctr}"
 
-image="centos-development:${tag}"
+image="centos-development"
 buildah commit --rm "${ctr}" "${image}"
 
 if [ -n "${BUILD_EXPORT_OCI_ARCHIVES}" ]
