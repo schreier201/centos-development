@@ -30,6 +30,7 @@ yum_opts=(
 yum ${yum_opts[@]} groupinstall "Development Tools"
 yum ${yum_opts[@]} install \
   buildah \
+  epel-release \
   docker \
   libfaketime \
   podman \
@@ -55,7 +56,7 @@ descr="CentOS development tools including container development tools"
 buildah config \
   --label "${oci_prefix}.authors=SDA SE Engineers <cloud@sda-se.com>" \
   --label "${oci_prefix}.url=https://quay.io/sdase/centos-development" \
-  --label "${oci_prefix}.source=http://github.com/SDA-SE/centos-development" \
+  --label "${oci_prefix}.source=https://github.com/SDA-SE/centos-development" \
   --label "${oci_prefix}.version=${version}" \
   --label "${oci_prefix}.revision=$( git rev-parse HEAD )" \
   --label "${oci_prefix}.vendor=SDA SE Open Industry Solutions" \
