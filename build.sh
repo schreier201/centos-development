@@ -21,7 +21,7 @@ mnt="$( buildah mount "${ctr}" )"
 
 echo 'nobody:x:99:99:Nobody:/:/sbin/nologin' >> "${mnt}/etc/passwd"
 echo 'nobody:x:99:' >> "${mnt}/etc/group"
-echo 'nobody:*:0:0:99999:7:::' >> "${mnt}etc/shadow"
+echo 'nobody:*:0:0:99999:7:::' >> "${mnt}/etc/shadow"
 
 yum_opts=(
   "--installroot=${mnt}"
