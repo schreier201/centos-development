@@ -36,6 +36,7 @@ yum ${yum_opts[@]} install epel-release
 
 yum ${yum_opts[@]} install \
   buildah \
+  chromium \
   docker \
   jq \
   libfaketime \
