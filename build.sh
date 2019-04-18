@@ -73,7 +73,7 @@ buildah config \
   --label "${oci_prefix}.licenses=AGPL-3.0" \
   --label "${oci_prefix}.title=CentOS development" \
   --label "${oci_prefix}.description=${descr}" \
-  --entrypoint '["/bin/zsh"]' \
+  --cmd "/bin/zsh" \
   "${ctr}"
 
 image="centos-development"
