@@ -57,6 +57,21 @@ perl -p -i -e 's/^driver = "overlay"$/driver = "vfs"/g' \
 
 cp libpod.conf "${mnt}/etc/containers/"
 
+# Get a bill of materials
+bill_of_materials="$(rpm \
+  --query \
+  --all \
+  --queryformat "%{NAME} %{VERSION} %{RELEASE} %{ARCH}" \
+  --dbpath="${mnt}"/var/lib/rpm \
+  | sort )"
+
+# Get bill of materials hash – the content
+# of this script is included in hash, too.
+bill_of_materials_hash="$( ( cat "${0}";
+  echo "${bill_of_materials}"; \
+  cat libpod.conf;
+  ) | sha256sum | awk '{ print $1; }' )"
+
 oci_prefix="org.opencontainers.image"
 version="$( buildah run "${ctr}" -- perl -0777 -ne \
   'print "$&\n" if /\d+(\.\d+)*/' /etc/centos-release)"
@@ -73,6 +88,8 @@ buildah config \
   --label "${oci_prefix}.licenses=AGPL-3.0" \
   --label "${oci_prefix}.title=CentOS development" \
   --label "${oci_prefix}.description=${descr}" \
+  --label "io.sda-se.image.bill-of-materials-hash=$( \
+    echo "${bill_of_materials_hash}" )" \
   --cmd "/bin/zsh" \
   "${ctr}"
 
