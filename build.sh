@@ -58,19 +58,23 @@ perl -p -i -e 's/^driver = "overlay"$/driver = "vfs"/g' \
 cp libpod.conf "${mnt}/etc/containers/"
 
 # Get a bill of materials
-bill_of_materials="$(rpm \
-  --query \
-  --all \
-  --queryformat "%{NAME} %{VERSION} %{RELEASE} %{ARCH}" \
-  --dbpath="${mnt}"/var/lib/rpm \
-  | sort )"
+bill_of_materials="$(
+  skopeo inspect containers-storage:quay.io/sdase/centos:7 \
+    | jq -r '.Digest'
+  rpm \
+    --query \
+    --all \
+    --queryformat "%{NAME} %{VERSION} %{RELEASE} %{ARCH}" \
+    --dbpath="${mnt}"/var/lib/rpm \
+    | sort
+  cat libpod.conf
+)"
 
 # Get bill of materials hash – the content
 # of this script is included in hash, too.
 bill_of_materials_hash="$( ( cat "${0}";
-  echo "${bill_of_materials}"; \
-  cat libpod.conf;
-  ) | sha256sum | awk '{ print $1; }' )"
+  echo "${bill_of_materials}" \
+) | sha256sum | awk '{ print $1; }' )"
 
 oci_prefix="org.opencontainers.image"
 version="$( buildah run "${ctr}" -- perl -0777 -ne \
