@@ -19,6 +19,8 @@ set -xe
 ctr="$( buildah from quay.io/sdase/centos:7 )"
 mnt="$( buildah mount "${ctr}" )"
 
+mkdir --mode 0777 --parent "${mnt}/code"
+
 echo 'nobody:x:99:99:Nobody:/:/sbin/nologin' >> "${mnt}/etc/passwd"
 echo 'nobody:x:99:' >> "${mnt}/etc/group"
 echo 'nobody:*:0:0:99999:7:::' >> "${mnt}/etc/shadow"
@@ -94,6 +96,7 @@ buildah config \
   --label "${oci_prefix}.description=${descr}" \
   --label "io.sda-se.image.bill-of-materials-hash=$( \
     echo "${bill_of_materials_hash}" )" \
+  --workingdir "/code" \
   --cmd "/bin/zsh" \
   "${ctr}"
 
