@@ -40,6 +40,7 @@ yum ${yum_opts[@]} install \
   buildah \
   chromium \
   docker \
+  java-11-openjdk \
   jq \
   libfaketime \
   neovim \
@@ -58,6 +59,12 @@ perl -p -i -e 's/^driver = "overlay"$/driver = "vfs"/g' \
   "${mnt}/etc/containers/storage.conf"
 
 cp libpod.conf "${mnt}/etc/containers/"
+
+JENKINS_SLAVE_VERSION="3.29"
+curl --create-dirs -fsSLo "${mnt}/usr/share/jenkins/slave.jar" \
+  https://repo.jenkins-ci.org/public/org/jenkins-ci/main/remoting/${JENKINS_SLAVE_VERSION}/remoting-${JENKINS_SLAVE_VERSION}.jar
+chmod 755 "${mnt}/usr/share/jenkins"
+chmod 644 "${mnt}/usr/share/jenkins/slave.jar"
 
 # Get a bill of materials
 bill_of_materials="$(
