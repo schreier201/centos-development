@@ -16,7 +16,15 @@
 
 set -xe
 
-ctr="$( buildah from quay.io/sdase/centos:7 )"
+trap cleanup INT EXIT
+cleanup() {
+  test -n "${ctr}" && buildah rm "${ctr}" || true
+}
+
+dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+build_dir="${dir}/build"
+
+ctr="$( buildah from --pull --quiet quay.io/sdase/centos:7 )"
 mnt="$( buildah mount "${ctr}" )"
 
 mkdir --mode 0777 --parent "${mnt}/code"
@@ -60,15 +68,9 @@ perl -p -i -e 's/^driver = "overlay"$/driver = "vfs"/g' \
 
 cp libpod.conf "${mnt}/etc/containers/"
 
-JENKINS_SLAVE_VERSION="3.29"
-curl --create-dirs -fsSLo "${mnt}/usr/share/jenkins/slave.jar" \
-  https://repo.jenkins-ci.org/public/org/jenkins-ci/main/remoting/${JENKINS_SLAVE_VERSION}/remoting-${JENKINS_SLAVE_VERSION}.jar
-chmod 755 "${mnt}/usr/share/jenkins"
-chmod 644 "${mnt}/usr/share/jenkins/slave.jar"
-
 # Get a bill of materials
 bill_of_materials="$(
-  skopeo inspect containers-storage:quay.io/sdase/centos:7 \
+  sudo skopeo inspect containers-storage:quay.io/sdase/centos:7 \
     | jq -r '.Digest'
   rpm \
     --query \
@@ -92,7 +94,7 @@ version="$( buildah run "${ctr}" -- perl -0777 -ne \
 descr="CentOS development tools including container development tools"
 
 buildah config \
-  --label "${oci_prefix}.authors=SDA SE Engineers <cloud@sda-se.com>" \
+  --label "${oci_prefix}.authors=SDA SE Engineers <engineers@sda-se.io>" \
   --label "${oci_prefix}.url=https://quay.io/sdase/centos-development" \
   --label "${oci_prefix}.source=https://github.com/SDA-SE/centos-development" \
   --label "${oci_prefix}.version=${version}" \
@@ -108,13 +110,13 @@ buildah config \
   "${ctr}"
 
 image="centos-development"
-buildah commit --rm "${ctr}" "${image}"
+buildah commit --quiet --rm "${ctr}" "${image}"
 
 if [ -n "${BUILD_EXPORT_OCI_ARCHIVES}" ]
 then
-  skopeo copy \
-    "containers-storage:localhost/${image}" \
-    "oci-archive:${WORKSPACE:-.}/${image//:/-}.tar"
+  mkdir --parent "${build_dir}"
+  buildah push --quiet "${image}" \
+    "oci-archive:${build_dir}/${image//:/-}.tar"
 
   buildah rmi "${image}"
 fi
