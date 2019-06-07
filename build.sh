@@ -63,10 +63,10 @@ yum ${yum_opts[@]} install \
 yum ${yum_opts[@]} clean all
 rm -rf "${mnt}/var/cache/yum"
 
-perl -p -i -e 's/^driver = "overlay"$/driver = "vfs"/g' \
-  "${mnt}/etc/containers/storage.conf"
+# perl -p -i -e 's/^driver = "overlay"$/driver = "vfs"/g' \
+#   "${mnt}/etc/containers/storage.conf"
 
-cp libpod.conf "${mnt}/etc/containers/"
+# cp libpod.conf "${mnt}/etc/containers/"
 
 # Get a bill of materials
 bill_of_materials="$(
