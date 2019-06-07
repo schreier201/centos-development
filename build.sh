@@ -29,7 +29,7 @@ yum_opts=(
   "--installroot=${mnt}"
   "--assumeyes"
   "--setopt=install_weak_deps=false"
-  "--releasever=/"
+  "--releasever=7"
   "--setopt=tsflags=nodocs"
 )
 
