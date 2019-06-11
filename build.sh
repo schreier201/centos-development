@@ -88,8 +88,8 @@ bill_of_materials_hash="$( ( cat "${0}";
 ) | sha256sum | awk '{ print $1; }' )"
 
 oci_prefix="org.opencontainers.image"
-version="$( buildah run "${ctr}" -- perl -0777 -ne \
-  'print "$&\n" if /\d+(\.\d+)*/' /etc/centos-release)"
+version="$( perl -0777 -ne \
+  'print "$&\n" if /\d+(\.\d+)*/' "${mnt}"/etc/centos-release )"
 
 descr="CentOS development tools including container development tools"
 
