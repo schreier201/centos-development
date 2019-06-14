@@ -106,7 +106,6 @@ buildah config \
   --label "io.sda-se.image.bill-of-materials-hash=$( \
     echo "${bill_of_materials_hash}" )" \
   --workingdir "/code" \
-  --cmd "/bin/zsh" \
   "${ctr}"
 
 image="centos-development"
