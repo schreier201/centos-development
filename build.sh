@@ -70,8 +70,7 @@ rm -rf "${mnt}/var/cache/yum"
 
 # Get a bill of materials
 bill_of_materials="$(
-  sudo skopeo inspect containers-storage:quay.io/sdase/centos:7 \
-    | jq -r '.Digest'
+  buildah images --format '{{.Digest}}' quay.io/sdase/centos:7
   rpm \
     --query \
     --all \
