@@ -112,7 +112,7 @@ buildah config \
   "${ctr}"
 
 image="centos-development"
-buildah commit --quiet --rm "${ctr}" "${image}"
+buildah commit --quiet --rm "${ctr}" "${image}" && ctr=
 
 if [ -n "${BUILD_EXPORT_OCI_ARCHIVES}" ]
 then
