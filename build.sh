@@ -43,6 +43,7 @@ yum_opts=(
 
 yum ${yum_opts[@]} groupinstall "Development Tools"
 yum ${yum_opts[@]} install epel-release
+rpm --root "${mnt}" --import "${mnt}/etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7"
 
 yum ${yum_opts[@]} install \
   buildah \
