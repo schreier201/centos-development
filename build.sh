@@ -60,6 +60,10 @@ yum ${yum_opts[@]} install \
   zsh \
   && true
 
+yum ${yum_opts[@]} install centos-release-scl
+rpm --root "${mnt}" --import "${mnt}/etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-SIG-SCLo"
+yum ${yum_opts[@]} install rh-git218-git-core
+
 yum ${yum_opts[@]} clean all
 rm -rf "${mnt}/var/cache/yum"
 
