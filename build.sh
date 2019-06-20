@@ -49,7 +49,6 @@ yum ${yum_opts[@]} install \
   buildah \
   chromium \
   docker \
-  java-11-openjdk \
   jq \
   libfaketime \
   neovim \
