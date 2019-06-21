@@ -52,6 +52,7 @@ yum ${yum_opts[@]} install \
   jq \
   libfaketime \
   neovim \
+  patch \
   podman \
   skopeo \
   unzip \
