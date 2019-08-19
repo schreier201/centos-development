@@ -48,6 +48,7 @@ rpm --root "${mnt}" --import "${mnt}/etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7"
 yum ${yum_opts[@]} install \
   buildah \
   chromium \
+  chromium-chromedriver \
   jq \
   libfaketime \
   neovim \
