@@ -19,13 +19,27 @@ set -xe
 trap cleanup INT EXIT
 cleanup() {
   test -n "${ctr}" && buildah rm "${ctr}" || true
+  test -n "${webdriver_download_dir}" && rm -rf "${webdriver_download_dir}"
 }
 
 dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 build_dir="${dir}/build"
 
+
+webdriver_download_dir="$( mktemp --directory )"
+webdriver_version="77.0.3865.10"
+webdriver_archive="chromedriver_linux64.zip"
+webdriver_url="https://chromedriver.storage.googleapis.com"
+webdriver_url="${webdriver_url}/${webdriver_version}/${webdriver_archive}"
+pushd "${webdriver_download_dir}"
+curl --location --remote-name "${webdriver_url}"
+unzip "${webdriver_archive}"
+popd
+
 ctr="$( buildah from --pull --quiet quay.io/sdase/centos:7 )"
 mnt="$( buildah mount "${ctr}" )"
+
+mv "${webdriver_download_dir}/chromedriver" "${mnt}/usr/local/bin/"
 
 mkdir --mode 0777 --parent "${mnt}/code"
 
@@ -48,7 +62,6 @@ rpm --root "${mnt}" --import "${mnt}/etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7"
 yum ${yum_opts[@]} install \
   buildah \
   chromium \
-  chromium-chromedriver \
   jq \
   libfaketime \
   neovim \
