@@ -27,7 +27,7 @@ build_dir="${dir}/build"
 
 
 webdriver_download_dir="$( mktemp --directory )"
-webdriver_version="77.0.3865.10"
+webdriver_version="75.0.3770.140"
 webdriver_archive="chromedriver_linux64.zip"
 webdriver_url="https://chromedriver.storage.googleapis.com"
 webdriver_url="${webdriver_url}/${webdriver_version}/${webdriver_archive}"
