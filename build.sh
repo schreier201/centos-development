@@ -34,7 +34,7 @@ webdriver_url="${webdriver_url}/${webdriver_version}/${webdriver_archive}"
 pushd "${webdriver_download_dir}"
 curl --location --remote-name "${webdriver_url}"
 unzip "${webdriver_archive}"
-chmod +x chromedriver
+chmod 0755 chromedriver
 popd
 
 ctr="$( buildah from --pull --quiet quay.io/sdase/centos:7 )"
