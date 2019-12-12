@@ -25,9 +25,9 @@ cleanup() {
 dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 build_dir="${dir}/build"
 
-
+# Install matching version of Chrome webdriver
 webdriver_download_dir="$( mktemp --directory )"
-webdriver_version="77.0.3865.40"
+webdriver_version="79.0.3945.36"
 webdriver_archive="chromedriver_linux64.zip"
 webdriver_url="https://chromedriver.storage.googleapis.com"
 webdriver_url="${webdriver_url}/${webdriver_version}/${webdriver_archive}"
@@ -41,7 +41,6 @@ ctr="$( buildah from --pull --quiet quay.io/sdase/centos:7 )"
 mnt="$( buildah mount "${ctr}" )"
 
 mv "${webdriver_download_dir}/chromedriver" "${mnt}/usr/local/bin/"
-
 mkdir --mode 0777 --parent "${mnt}/code"
 
 echo 'nobody:x:99:99:Nobody:/:/sbin/nologin' >> "${mnt}/etc/passwd"
@@ -62,7 +61,6 @@ rpm --root "${mnt}" --import "${mnt}/etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7"
 
 yum ${yum_opts[@]} install \
   buildah \
-  chromium \
   jq \
   libfaketime \
   neovim \
@@ -78,6 +76,9 @@ yum ${yum_opts[@]} install \
 yum ${yum_opts[@]} install centos-release-scl
 rpm --root "${mnt}" --import "${mnt}/etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-SIG-SCLo"
 yum ${yum_opts[@]} install rh-git218-git-core
+
+# Install latest version of Chromium
+yum ${yum_opts[@]} install https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm
 
 yum ${yum_opts[@]} clean all
 rm -rf "${mnt}/var/cache/yum"
