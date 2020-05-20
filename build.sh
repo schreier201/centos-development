@@ -37,7 +37,12 @@ unzip "${webdriver_archive}"
 chmod 0755 chromedriver
 popd
 
-ctr="$( buildah from --pull --quiet quay.io/sdase/centos:7 )"
+buildah_from_options=""
+if [ -n "$1" ]; then
+  buildah_from_options="${buildah_from_options} --creds $1"
+fi
+
+ctr="$( buildah from --pull --quiet ${buildah_from_options} quay.io/sdase/centos:8-dev )"
 mnt="$( buildah mount "${ctr}" )"
 
 mv "${webdriver_download_dir}/chromedriver" "${mnt}/usr/local/bin/"
@@ -47,57 +52,45 @@ echo 'nobody:x:99:99:Nobody:/:/sbin/nologin' >> "${mnt}/etc/passwd"
 echo 'nobody:x:99:' >> "${mnt}/etc/group"
 echo 'nobody:*:0:0:99999:7:::' >> "${mnt}/etc/shadow"
 
-yum_opts=(
+# Options that are used with every `yum` command
+dnf_opts=(
+  "--disableplugin=*"
   "--installroot=${mnt}"
   "--assumeyes"
   "--setopt=install_weak_deps=false"
-  "--releasever=7"
-  "--setopt=tsflags=nodocs"
+  "--releasever=8"
+  "--setopt=tsflags=nocontexts,nodocs"
 )
 
-yum ${yum_opts[@]} groupinstall "Development Tools"
-yum ${yum_opts[@]} install epel-release
-rpm --root "${mnt}" --import "${mnt}/etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7"
+# Install CentOS
+dnf ${dnf_opts[@]} install dnf
 
-yum ${yum_opts[@]} install \
-  buildah \
+buildah run ${ctr} -- dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+buildah run ${ctr} -- dnf install -y \
   jq \
+  gcc \
+  make \
   libfaketime \
-  neovim \
+  vim \
   patch \
-  podman \
-  skopeo \
-  unzip \
-  tree \
-  yum \
-  zsh \
-  && true
-
-yum ${yum_opts[@]} install centos-release-scl
-rpm --root "${mnt}" --import "${mnt}/etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-SIG-SCLo"
-yum ${yum_opts[@]} install rh-git218-git-core
+  unzip
 
 # Install latest version of Chromium
-yum ${yum_opts[@]} install https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm
+buildah copy ${ctr} chrome.repo /etc/yum.repos.d/chrome.repo
+buildah run ${ctr} -- dnf install -y google-chrome-stable
 
-yum ${yum_opts[@]} clean all
+buildah run ${ctr} dnf clean all
 rm -rf "${mnt}/var/cache/yum"
-
-# perl -p -i -e 's/^driver = "overlay"$/driver = "vfs"/g' \
-#   "${mnt}/etc/containers/storage.conf"
-
-# cp libpod.conf "${mnt}/etc/containers/"
 
 # Get a bill of materials
 bill_of_materials="$(
-  buildah images --format '{{.Digest}}' quay.io/sdase/centos:7
+  buildah images --format '{{.Digest}}' quay.io/sdase/centos:8-dev
   rpm \
     --query \
     --all \
     --queryformat "%{NAME} %{VERSION} %{RELEASE} %{ARCH}" \
     --dbpath="${mnt}"/var/lib/rpm \
     | sort
-  cat libpod.conf
 )"
 
 # Get bill of materials hash – the content
@@ -107,8 +100,6 @@ bill_of_materials_hash="$( ( cat "${0}";
 ) | sha256sum | awk '{ print $1; }' )"
 
 oci_prefix="org.opencontainers.image"
-version="$( perl -0777 -ne \
-  'print "$&\n" if /\d+(\.\d+)*/' "${mnt}"/etc/centos-release )"
 
 descr="CentOS development tools including container development tools"
 
@@ -116,7 +107,6 @@ buildah config \
   --label "${oci_prefix}.authors=SDA SE Engineers <engineers@sda-se.io>" \
   --label "${oci_prefix}.url=https://quay.io/sdase/centos-development" \
   --label "${oci_prefix}.source=https://github.com/SDA-SE/centos-development" \
-  --label "${oci_prefix}.version=${version}" \
   --label "${oci_prefix}.revision=$( git rev-parse HEAD )" \
   --label "${oci_prefix}.vendor=SDA SE Open Industry Solutions" \
   --label "${oci_prefix}.licenses=AGPL-3.0" \
