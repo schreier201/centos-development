@@ -17,4 +17,4 @@
 
 @Library('jenkins-pipeline@feat/skopeop-inspect-creds') _
 
-buildImage targetImage: 'centos-development', registryToCredentialsId: 'quay' triggeredBy 'centos-updated
+buildImage targetImage: 'centos-development', registryToCredentialsId: 'quay' triggeredBy 'centos-updated'
