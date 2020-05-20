@@ -27,7 +27,7 @@ build_dir="${dir}/build"
 
 # Install matching version of Chrome webdriver
 webdriver_download_dir="$( mktemp --directory )"
-webdriver_version="79.0.3945.36"
+webdriver_version="81.0.4044.138"
 webdriver_archive="chromedriver_linux64.zip"
 webdriver_url="https://chromedriver.storage.googleapis.com"
 webdriver_url="${webdriver_url}/${webdriver_version}/${webdriver_archive}"
