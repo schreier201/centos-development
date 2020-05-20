@@ -42,7 +42,7 @@ if [ -n "$1" ]; then
   buildah_from_options="${buildah_from_options} --creds $1"
 fi
 
-ctr="$( buildah from --pull --quiet ${buildah_from_options} quay.io/sdase/centos:8-dev )"
+ctr="$( buildah from --pull --quiet ${buildah_from_options} quay.io/sdase/centos:8 )"
 mnt="$( buildah mount "${ctr}" )"
 
 mv "${webdriver_download_dir}/chromedriver" "${mnt}/usr/local/bin/"
@@ -84,7 +84,7 @@ rm -rf "${mnt}/var/cache/yum"
 
 # Get a bill of materials
 bill_of_materials="$(
-  buildah images --format '{{.Digest}}' quay.io/sdase/centos:8-dev
+  buildah images --format '{{.Digest}}' quay.io/sdase/centos:8
   rpm \
     --query \
     --all \
