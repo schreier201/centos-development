@@ -162,7 +162,7 @@ yum_opts=(
   "--assumeyes"
   "--setopt=install_weak_deps=false"
   "--releasever=7"
-  "--setopt=tsflags=nodocs"
+  "--setopt=tsflags=nocontexts,nodocs"
 )
 
 yum ${yum_opts[@]} groupinstall "Development Tools"
