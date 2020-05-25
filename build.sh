@@ -22,8 +22,118 @@ cleanup() {
   test -n "${webdriver_download_dir}" && rm -rf "${webdriver_download_dir}"
 }
 
+### CentOS 8 Build
+
 dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 build_dir="${dir}/build"
+
+# Install matching version of Chrome webdriver
+webdriver_download_dir="$( mktemp --directory )"
+webdriver_version="81.0.4044.138"
+webdriver_archive="chromedriver_linux64.zip"
+webdriver_url="https://chromedriver.storage.googleapis.com"
+webdriver_url="${webdriver_url}/${webdriver_version}/${webdriver_archive}"
+pushd "${webdriver_download_dir}"
+curl --location --remote-name "${webdriver_url}"
+unzip "${webdriver_archive}"
+chmod 0755 chromedriver
+popd
+
+buildah_from_options=""
+if [ -n "$1" ]; then
+  buildah_from_options="${buildah_from_options} --creds $1"
+fi
+
+ctr="$( buildah from --pull --quiet ${buildah_from_options} quay.io/sdase/centos:8 )"
+mnt="$( buildah mount "${ctr}" )"
+
+mv "${webdriver_download_dir}/chromedriver" "${mnt}/usr/local/bin/"
+mkdir --mode 0777 --parent "${mnt}/code"
+
+echo 'nobody:x:99:99:Nobody:/:/sbin/nologin' >> "${mnt}/etc/passwd"
+echo 'nobody:x:99:' >> "${mnt}/etc/group"
+echo 'nobody:*:0:0:99999:7:::' >> "${mnt}/etc/shadow"
+
+# Options that are used with every `yum` command
+dnf_opts=(
+  "--disableplugin=*"
+  "--installroot=${mnt}"
+  "--assumeyes"
+  "--setopt=install_weak_deps=false"
+  "--releasever=8"
+  "--setopt=tsflags=nocontexts,nodocs"
+)
+
+# Install CentOS
+dnf ${dnf_opts[@]} install dnf
+
+buildah run ${ctr} -- dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+buildah run ${ctr} -- dnf install -y \
+  jq \
+  gcc \
+  make \
+  libfaketime \
+  vim \
+  patch \
+  unzip
+
+# Install latest version of Chromium
+buildah copy ${ctr} chrome.repo /etc/yum.repos.d/chrome.repo
+buildah run ${ctr} -- dnf install -y google-chrome-stable
+
+buildah run ${ctr} dnf clean all
+rm -rf "${mnt}/var/cache/yum"
+
+# Get a bill of materials
+bill_of_materials="$(
+  buildah images --format '{{.Digest}}' quay.io/sdase/centos:8
+  rpm \
+    --query \
+    --all \
+    --queryformat "%{NAME} %{VERSION} %{RELEASE} %{ARCH}" \
+    --dbpath="${mnt}"/var/lib/rpm \
+    | sort
+)"
+
+# Get bill of materials hash – the content
+# of this script is included in hash, too.
+bill_of_materials_hash="$( ( cat "${0}";
+  echo "${bill_of_materials}" \
+) | sha256sum | awk '{ print $1; }' )"
+
+oci_prefix="org.opencontainers.image"
+
+descr="CentOS development tools including container development tools"
+
+buildah config \
+  --label "${oci_prefix}.authors=SDA SE Engineers <engineers@sda-se.io>" \
+  --label "${oci_prefix}.url=https://quay.io/sdase/centos-development" \
+  --label "${oci_prefix}.source=https://github.com/SDA-SE/centos-development" \
+  --label "${oci_prefix}.revision=$( git rev-parse HEAD )" \
+  --label "${oci_prefix}.vendor=SDA SE Open Industry Solutions" \
+  --label "${oci_prefix}.licenses=AGPL-3.0" \
+  --label "${oci_prefix}.title=CentOS development" \
+  --label "${oci_prefix}.description=${descr}" \
+  --label "io.sda-se.image.bill-of-materials-hash=$( \
+    echo "${bill_of_materials_hash}" )" \
+  --workingdir "/code" \
+  "${ctr}"
+
+image="centos-development:8"
+buildah commit --quiet --rm "${ctr}" "${image}" && ctr=
+
+if [ -n "${BUILD_EXPORT_OCI_ARCHIVES}" ]
+then
+  mkdir --parent "${build_dir}"
+  buildah push --quiet "${image}" \
+    "oci-archive:${build_dir}/${image//:/-}.tar"
+
+  buildah rmi "${image}"
+fi
+
+cleanup
+
+### CentOS 7 Build
 
 # Install matching version of Chrome webdriver
 webdriver_download_dir="$( mktemp --directory )"
@@ -52,7 +162,7 @@ yum_opts=(
   "--assumeyes"
   "--setopt=install_weak_deps=false"
   "--releasever=7"
-  "--setopt=tsflags=nodocs"
+  "--setopt=tsflags=nocontexts,nodocs"
 )
 
 yum ${yum_opts[@]} groupinstall "Development Tools"
@@ -97,7 +207,6 @@ bill_of_materials="$(
     --queryformat "%{NAME} %{VERSION} %{RELEASE} %{ARCH}" \
     --dbpath="${mnt}"/var/lib/rpm \
     | sort
-  cat libpod.conf
 )"
 
 # Get bill of materials hash – the content
@@ -127,7 +236,7 @@ buildah config \
   --workingdir "/code" \
   "${ctr}"
 
-image="centos-development"
+image="centos-development:7"
 buildah commit --quiet --rm "${ctr}" "${image}" && ctr=
 
 if [ -n "${BUILD_EXPORT_OCI_ARCHIVES}" ]
