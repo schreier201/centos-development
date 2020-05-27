@@ -75,7 +75,8 @@ buildah run ${ctr} -- dnf install -y \
   libfaketime \
   vim \
   patch \
-  unzip
+  unzip \
+  tar
 
 # Install latest version of Chromium
 buildah copy ${ctr} chrome.repo /etc/yum.repos.d/chrome.repo
