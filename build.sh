@@ -122,7 +122,7 @@ buildah config \
 
 image="centos-development:8"
 # create a individual image id
-image_build="${image}.${BUILD_NUMBER}"
+image_build="${image}.${RANDOM}"
 buildah commit --quiet --rm "${ctr}" "${image_build}" && ctr=
 
 if [ -n "${BUILD_EXPORT_OCI_ARCHIVES}" ]
@@ -241,7 +241,7 @@ buildah config \
 
 image="centos-development:7"
 # create a individual image id
-image_build="${image}.${BUILD_NUMBER}"
+image_build="${image}.${RANDOM}"
 buildah commit --quiet --rm "${ctr}" "${image_build}" && ctr=
 
 if [ -n "${BUILD_EXPORT_OCI_ARCHIVES}" ]
