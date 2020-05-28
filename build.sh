@@ -123,15 +123,17 @@ buildah config \
   "${ctr}"
 
 image="centos-development:8"
-buildah commit --quiet --rm "${ctr}" "${image}" && ctr=
+# create a individual image id
+image_build="${image}.${RANDOM}"
+buildah commit --quiet --rm "${ctr}" "${image_build}" && ctr=
 
 if [ -n "${BUILD_EXPORT_OCI_ARCHIVES}" ]
 then
   mkdir --parent "${build_dir}"
-  buildah push --quiet "${image}" \
+  buildah push --quiet "${image_build}" \
     "oci-archive:${build_dir}/${image//:/-}.tar"
 
-  buildah rmi "${image}"
+  buildah rmi "${image_build}"
 fi
 
 cleanup
@@ -240,13 +242,15 @@ buildah config \
   "${ctr}"
 
 image="centos-development:7"
-buildah commit --quiet --rm "${ctr}" "${image}" && ctr=
+# create a individual image id
+image_build="${image}.${RANDOM}"
+buildah commit --quiet --rm "${ctr}" "${image_build}" && ctr=
 
 if [ -n "${BUILD_EXPORT_OCI_ARCHIVES}" ]
 then
   mkdir --parent "${build_dir}"
-  buildah push --quiet "${image}" \
+  buildah push --quiet "${image_build}" \
     "oci-archive:${build_dir}/${image//:/-}.tar"
 
-  buildah rmi "${image}"
+  buildah rmi "${image_build}"
 fi
