@@ -76,7 +76,9 @@ buildah run ${ctr} -- dnf install -y \
   vim \
   patch \
   unzip \
-  tar
+  tar \
+  git-core \
+  scl-utils 
 
 # Install latest version of Chromium
 buildah copy ${ctr} chrome.repo /etc/yum.repos.d/chrome.repo
