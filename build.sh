@@ -54,6 +54,11 @@ echo 'nobody:x:99:99:Nobody:/:/sbin/nologin' >> "${mnt}/etc/passwd"
 echo 'nobody:x:99:' >> "${mnt}/etc/group"
 echo 'nobody:*:0:0:99999:7:::' >> "${mnt}/etc/shadow"
 
+echo 'jenkinsbuild:!!:18429::::::' >> "${mnt}/etc/shadow"
+echo 'jenkinsbuild:x:999:999:Jenkins build agent user:/code:/bin/bash' >> "${mnt}/etc/passwd"
+echo 'jenkinsbuild:x:999:' >> "${mnt}/etc/group"
+chown 999:999 "${mnt}/code"
+
 # Options that are used with every `yum` command
 dnf_opts=(
   "--disableplugin=*"
@@ -161,6 +166,11 @@ mkdir --mode 0777 --parent "${mnt}/code"
 echo 'nobody:x:99:99:Nobody:/:/sbin/nologin' >> "${mnt}/etc/passwd"
 echo 'nobody:x:99:' >> "${mnt}/etc/group"
 echo 'nobody:*:0:0:99999:7:::' >> "${mnt}/etc/shadow"
+
+echo 'jenkinsbuild:!!:18429::::::' >> "${mnt}/etc/shadow"
+echo 'jenkinsbuild:x:999:999:Jenkins build agent user:/code:/bin/bash' >> "${mnt}/etc/passwd"
+echo 'jenkinsbuild:x:999:' >> "${mnt}/etc/group"
+chown 999:999 "${mnt}/code"
 
 yum_opts=(
   "--installroot=${mnt}"
