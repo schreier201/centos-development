@@ -27,18 +27,6 @@ cleanup() {
 dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 build_dir="${dir}/build"
 
-# Install matching version of Chrome webdriver
-webdriver_download_dir="$( mktemp --directory )"
-webdriver_version="81.0.4044.138"
-webdriver_archive="chromedriver_linux64.zip"
-webdriver_url="https://chromedriver.storage.googleapis.com"
-webdriver_url="${webdriver_url}/${webdriver_version}/${webdriver_archive}"
-pushd "${webdriver_download_dir}"
-curl --location --remote-name "${webdriver_url}"
-unzip "${webdriver_archive}"
-chmod 0755 chromedriver
-popd
-
 buildah_from_options=""
 if [ -n "$1" ]; then
   buildah_from_options="${buildah_from_options} --creds $1"
@@ -47,7 +35,6 @@ fi
 ctr="$( buildah from --pull --quiet ${buildah_from_options} quay.io/sdase/centos:8 )"
 mnt="$( buildah mount "${ctr}" )"
 
-mv "${webdriver_download_dir}/chromedriver" "${mnt}/usr/local/bin/"
 mkdir --mode 0777 --parent "${mnt}/code"
 
 echo 'nobody:x:99:99:Nobody:/:/sbin/nologin' >> "${mnt}/etc/passwd"
@@ -85,9 +72,39 @@ buildah run ${ctr} -- dnf install -y \
   git-core \
   scl-utils 
 
-# Install latest version of Chromium
+# Install latest version of Chrome
 buildah copy ${ctr} chrome.repo /etc/yum.repos.d/chrome.repo
 buildah run ${ctr} -- dnf install -y google-chrome-stable
+
+# Install matching version of Chrome webdriver
+chrome_version_output="$(buildah run "${ctr}" -- google-chrome --version)"
+if [ $? -ne 0 ]; then
+    echo "unable to get google chrome version"
+    exit 1
+fi
+
+regex="Google Chrome ([0-9]+)"
+if [[ ${chrome_version_output} =~ $regex ]]
+then
+  chrome_major_version=${BASH_REMATCH[1]}
+else
+  echo "unable to find google chrome version"
+  exit 1
+fi
+
+webdriver_version=$(curl https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${chrome_major_version})
+
+# Install matching version of Chrome webdriver
+webdriver_download_dir="$( mktemp --directory )"
+webdriver_archive="chromedriver_linux64.zip"
+webdriver_url="https://chromedriver.storage.googleapis.com"
+webdriver_url="${webdriver_url}/${webdriver_version}/${webdriver_archive}"
+pushd "${webdriver_download_dir}"
+curl --location --remote-name "${webdriver_url}"
+unzip "${webdriver_archive}"
+chmod 0755 chromedriver
+popd
+mv "${webdriver_download_dir}/chromedriver" "${mnt}/usr/local/bin/"
 
 buildah run ${ctr} dnf clean all
 rm -rf "${mnt}/var/cache/yum"
@@ -145,22 +162,9 @@ cleanup
 
 ### CentOS 7 Build
 
-# Install matching version of Chrome webdriver
-webdriver_download_dir="$( mktemp --directory )"
-webdriver_version="79.0.3945.36"
-webdriver_archive="chromedriver_linux64.zip"
-webdriver_url="https://chromedriver.storage.googleapis.com"
-webdriver_url="${webdriver_url}/${webdriver_version}/${webdriver_archive}"
-pushd "${webdriver_download_dir}"
-curl --location --remote-name "${webdriver_url}"
-unzip "${webdriver_archive}"
-chmod 0755 chromedriver
-popd
-
 ctr="$( buildah from --pull --quiet quay.io/sdase/centos:7 )"
 mnt="$( buildah mount "${ctr}" )"
 
-mv "${webdriver_download_dir}/chromedriver" "${mnt}/usr/local/bin/"
 mkdir --mode 0777 --parent "${mnt}/code"
 
 echo 'nobody:x:99:99:Nobody:/:/sbin/nologin' >> "${mnt}/etc/passwd"
@@ -202,8 +206,38 @@ yum ${yum_opts[@]} install centos-release-scl
 rpm --root "${mnt}" --import "${mnt}/etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-SIG-SCLo"
 yum ${yum_opts[@]} install rh-git218-git-core
 
-# Install latest version of Chromium
-yum ${yum_opts[@]} install https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm
+# Install latest version of Chrome
+buildah copy ${ctr} chrome.repo /etc/yum.repos.d/chrome.repo
+yum ${yum_opts[@]} install google-chrome-stable
+
+# Install matching version of Chrome webdriver
+chrome_version_output="$(buildah run "${ctr}" -- google-chrome-stable --version)"
+if [ $? -ne 0 ]; then
+    echo "unable to get google chrome version"
+    exit 1
+fi
+
+regex="Google Chrome ([0-9]+)"
+if [[ ${chrome_version_output} =~ $regex ]]
+then
+  chrome_major_version=${BASH_REMATCH[1]}
+else
+  echo "unable to find google chrome version"
+  exit 1
+fi
+
+webdriver_version=$(curl https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${chrome_major_version})
+
+webdriver_download_dir="$( mktemp --directory )"
+webdriver_archive="chromedriver_linux64.zip"
+webdriver_url="https://chromedriver.storage.googleapis.com"
+webdriver_url="${webdriver_url}/${webdriver_version}/${webdriver_archive}"
+pushd "${webdriver_download_dir}"
+curl --location --remote-name "${webdriver_url}"
+unzip "${webdriver_archive}"
+chmod 0755 chromedriver
+popd
+mv "${webdriver_download_dir}/chromedriver" "${mnt}/usr/local/bin/"
 
 yum ${yum_opts[@]} clean all
 rm -rf "${mnt}/var/cache/yum"
