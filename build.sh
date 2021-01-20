@@ -42,9 +42,9 @@ echo 'nobody:x:99:' >> "${mnt}/etc/group"
 echo 'nobody:*:0:0:99999:7:::' >> "${mnt}/etc/shadow"
 
 echo 'jenkinsbuild:!!:18429::::::' >> "${mnt}/etc/shadow"
-echo 'jenkinsbuild:x:999:999:Jenkins build agent user:/code:/bin/bash' >> "${mnt}/etc/passwd"
-echo 'jenkinsbuild:x:999:' >> "${mnt}/etc/group"
-chown 999:999 "${mnt}/code"
+echo 'jenkinsbuild:x:1001:1001:Jenkins build agent user:/code:/bin/bash' >> "${mnt}/etc/passwd"
+echo 'jenkinsbuild:x:1001:' >> "${mnt}/etc/group"
+chown 1001:1001 "${mnt}/code"
 
 # Options that are used with every `yum` command
 dnf_opts=(
@@ -70,7 +70,7 @@ buildah run ${ctr} -- dnf install -y \
   unzip \
   tar \
   git-core \
-  scl-utils 
+  scl-utils
 
 # Install latest version of Chrome
 buildah copy ${ctr} chrome.repo /etc/yum.repos.d/chrome.repo
