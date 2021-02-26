@@ -15,4 +15,4 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-buildImage targetImage: 'centos-development', slackChannel: '#devops-notifications', registryToCredentialsId: 'quay', triggeredBy 'centos-updated'
+buildImage targetImage: 'centos-development', slackChannel: '#devops-notifications', registryToCredentialsId: 'quay' triggeredBy 'centos-updated'
